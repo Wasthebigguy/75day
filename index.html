@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="75 Hard" />
+  <title>75 Hard Tracker — Oct 18 to Dec 31, 2026</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-main: #070a10;
+      --bg-card: #0f1522;
+      --bg-elevated: #161f32;
+      --border-subtle: #1e293b;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-main);
+      color: #f8fafc;
+      -webkit-tap-highlight-color: transparent;
+      background-image: 
+        radial-gradient(circle at 12% 8%, rgba(59, 130, 246, 0.08), transparent 32%),
+        radial-gradient(circle at 88% 15%, rgba(16, 185, 129, 0.07), transparent 32%);
+      min-height: 100vh;
+    }
+
+    .font-mono-num {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .progress-ring-circle {
+      transition: stroke-dashoffset 0.45s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.3s ease;
+      transform: rotate(-90deg);
+      transform-origin: 50% 50%;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #070a10;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #334155;
+    }
+
+    .task-card {
+      transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .task-card:hover {
+      transform: translateY(-1px);
+    }
+    .task-card.checked {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.14), rgba(16, 185, 129, 0.05));
+      border-color: rgba(16, 185, 129, 0.45);
+    }
+    .task-card.failed-alert {
+      border-color: rgba(239, 68, 68, 0.6) !important;
+      background: rgba(239, 68, 68, 0.08);
+    }
+
+    .day-cell {
+      transition: all 0.15s ease;
+    }
+    .day-cell:hover {
+      transform: translateY(-2px);
+      border-color: #475569;
+    }
+    .day-cell.selected-cell {
+      border-color: #3b82f6 !important;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.35);
+    }
+  </style>
+</head>
+<body class="px-3 sm:px-6 py-5 pb-16 max-w-7xl mx-auto selection:bg-blue-500 selection:text-white">
+
+  <!-- Toast Notification Banner -->
+  <div id="toastBanner" class="fixed bottom-5 right-5 z-50 hidden transform transition-all duration-300 translate-y-2 opacity-0">
+    <div id="toastInner" class="flex items-center gap-3 px-4 py-3 rounded-xl border border-slate-700 bg-slate-900/95 backdrop-blur-md shadow-2xl text-sm font-semibold text-slate-100">
+      <span id="toastIcon">✨</span>
+      <span id="toastText">Saved</span>
+    </div>
+  </div>
+
+  <!-- Top Header -->
+  <header class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-5 mb-5 border-b border-slate-800/80">
+    <div>
+      <div class="flex items-center gap-3 flex-wrap">
+        <span class="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-emerald-500 text-slate-950 font-black text-lg shadow-lg shadow-blue-500/20">75</span>
+        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">75 HARD TRACKER</h1>
+        <span class="text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">
+          Strict Rules Edition
+        </span>
+      </div>
+      <p class="text-slate-400 text-xs sm:text-sm mt-1">
+        Sunday, Oct 18, 2026 <span class="text-slate-600">→</span> Thursday, Dec 31, 2026 <span class="text-emerald-400 font-medium">(New Year's Eve Finish)</span>
+      </p>
+    </div>
+
+    <!-- Skill Input & Cloud Sync Button -->
+    <div class="flex flex-wrap items-center gap-2.5">
+      <div class="flex items-center gap-2 bg-[#0f1522] border border-slate-800 rounded-xl px-3.5 py-2 focus-within:border-blue-500/60 transition-colors flex-1 sm:flex-initial">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-400 whitespace-nowrap">🎯 Week 1 Skill:</span>
+        <input
+          id="skillInput"
+          type="text"
+          placeholder="Lock in 30m learning project..."
+          class="bg-transparent text-sm font-semibold text-white placeholder-slate-500 focus:outline-none w-full sm:w-48"
+        />
+      </div>
+
+      <button
+        id="syncStatusBtn"
+        onclick="toggleSyncDrawer()"
+        class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-[#0f1522] hover:bg-slate-800/80 border border-slate-800 hover:border-slate-700 text-xs font-bold text-slate-200 transition-all"
+      >
+        <span id="syncStatusIcon">☁️</span>
+        <span id="syncStatusText">Cloud Sync</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- CRITICAL GUARDRAIL FAILURE ALERT BANNER -->
+  <div id="failureAlertBanner" class="hidden mb-5 rounded-2xl bg-red-950/40 border-2 border-red-500/80 p-4 sm:p-5 shadow-2xl shadow-red-950/50 flex items-start gap-4">
+    <div class="text-2xl sm:text-3xl flex-shrink-0 mt-0.5 animate-pulse">🚨</div>
+    <div class="flex-1 min-w-0">
+      <h3 class="text-base sm:text-lg font-black text-red-400 uppercase tracking-wide">
+        Challenge Failure Alert Triggered!
+      </h3>
+      <p id="failureAlertReason" class="text-xs sm:text-sm text-red-200/90 font-medium mt-1 leading-relaxed">
+        Rule violation detected: "No Porn/Fap" failed or two consecutive incomplete days detected. Immediate reset required per strict rules!
+      </p>
+    </div>
+    <button onclick="dismissFailureBanner()" class="text-xs font-bold text-red-400 hover:text-red-200 px-3 py-1.5 rounded-lg bg-red-900/40 border border-red-500/30">
+      Dismiss
+    </button>
+  </div>
+
+  <!-- Collapsible Cloud Sync Drawer (GitHub Gist) -->
+  <section id="syncDrawer" class="hidden mb-6 rounded-2xl bg-[#0f1522] border border-blue-500/40 p-4 sm:p-5 shadow-2xl shadow-blue-950/20">
+    <div class="flex items-center justify-between gap-2 mb-2">
+      <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+        <span>☁️ Automatic Cross-Device Sync (MacBook ↔ iPhone)</span>
+      </h3>
+      <button onclick="toggleSyncDrawer()" class="text-xs font-semibold text-slate-400 hover:text-white px-2.5 py-1 rounded-lg bg-slate-800/70">
+        Close ✕
+      </button>
+    </div>
+    <p class="text-xs text-slate-400 mb-3 leading-relaxed">
+      Paste a GitHub Personal Access Token (Classic token with the <code class="text-blue-300 bg-slate-900 px-1.5 py-0.5 rounded">gist</code> scope checked). The tracker automatically creates and syncs a private <code class="text-emerald-300 bg-slate-900 px-1.5 py-0.5 rounded">75hard_sync.json</code> file across all devices where you enter this token.
+    </p>
+    <div class="flex flex-col sm:flex-row gap-2.5">
+      <input
+        id="ghTokenInput"
+        type="password"
+        placeholder="Paste GitHub Token (ghp_...)"
+        class="flex-1 bg-slate-950 border border-slate-800 focus:border-blue-500 rounded-xl px-3.5 py-2 text-sm text-white placeholder-slate-500 focus:outline-none"
+      />
+      <div class="flex flex-wrap gap-2">
+        <button onclick="connectCloudSync()" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-colors">
+          Save & Sync Now
+        </button>
+        <button onclick="pullFromCloud(true)" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-colors">
+          🔄 Force Pull
+        </button>
+        <button onclick="disconnectCloud()" class="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-red-950/50 border border-slate-800 hover:border-red-500/40 text-red-400 text-xs font-semibold transition-colors">
+          Disconnect
+        </button>
+      </div>
+    </div>
+    <p id="syncFeedback" class="text-xs font-medium text-blue-400 mt-2.5 min-h-[1rem]"></p>
+  </section>
+
+  <!-- TOP DASHBOARD: Percentage Trackers & Key Metrics -->
+  <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 mb-6">
+    
+    <!-- Card 1: Overall 75-Day Challenge Completion % -->
+    <div class="rounded-2xl bg-[#0f1522] border border-slate-800/90 p-4 flex flex-col justify-between relative overflow-hidden">
+      <div class="flex items-center justify-between">
+        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Challenge %</span>
+        <span id="statTotalPillarsBadge" class="text-[11px] font-mono-num font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
+          0 / 600 Pillars
+        </span>
+      </div>
+      <div class="my-2 flex items-baseline gap-2.5">
+        <span id="statOverallPercent" class="text-3xl sm:text-4xl font-black font-mono-num tracking-tight bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
+          0.0%
+        </span>
+        <span id="statFullDaysText" class="text-xs text-slate-400 font-semibold">
+          0 / 75 Days (0%)
+        </span>
+      </div>
+      <div>
+        <div class="w-full h-2.5 bg-slate-950 rounded-full overflow-hidden border border-slate-800/80">
+          <div id="overallProgressBar" class="h-full bg-gradient-to-r from-blue-500 via-cyan-400 to-emerald-400 transition-all duration-500 rounded-full" style="width: 0%"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 2: Selected Day Completion % -->
+    <div class="rounded-2xl bg-[#0f1522] border border-slate-800/90 p-4 flex flex-col justify-between">
+      <div class="flex items-center justify-between">
+        <span id="statDayCardLabel" class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Day 1 Completion</span>
+        <span id="statDayPillarsCount" class="text-[11px] font-mono-num font-semibold text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-md border border-blue-500/20">
+          0 / 8 Pillars
+        </span>
+      </div>
+      <div class="my-2 flex items-baseline justify-between">
+        <span id="statDayPercentTop" class="text-3xl sm:text-4xl font-black font-mono-num tracking-tight text-white">
+          0%
+        </span>
+        <span id="statStreakBadge" class="text-xs font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-lg">
+          🔥 0 Day Streak
+        </span>
+      </div>
+      <div>
+        <div class="w-full h-2.5 bg-slate-950 rounded-full overflow-hidden border border-slate-800/80">
+          <div id="dayProgressBarTop" class="h-full bg-gradient-to-r from-blue-500 to-emerald-400 transition-all duration-300 rounded-full" style="width: 0%"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 3: Wednesday / Saturday Yoga Schedule & Streak Status -->
+    <div class="rounded-2xl bg-[#0f1522] border border-slate-800/90 p-4 flex flex-col justify-between">
+      <div class="flex items-center justify-between">
+        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Yoga Schedule (Wed & Sat)</span>
+        <span id="statYogaDayBadge" class="text-[11px] font-mono-num font-semibold text-purple-300 bg-purple-500/10 px-2 py-0.5 rounded-md border border-purple-500/20">
+          Rest Day
+        </span>
+      </div>
+      <div class="my-2 flex items-center justify-between">
+        <div>
+          <span id="statYogaStatusText" class="text-lg font-extrabold text-white">Not a Yoga Day</span>
+          <p id="statYogaSub" class="text-xs text-slate-400 mt-0.5">Gym is active today</p>
+        </div>
+        <div id="statYogaCheckIcon" class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-lg text-slate-500">
+          🧘
+        </div>
+      </div>
+      <div class="text-[11px] text-slate-400 font-medium">
+        Guardrail: Fail on No Porn / 2 consecutive misses
+      </div>
+    </div>
+
+    <!-- Card 4: Next Cheat Meal Countdown -->
+    <div class="rounded-2xl bg-[#0f1522] border border-slate-800/90 p-4 flex flex-col justify-between">
+      <div class="flex items-center justify-between">
+        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Next Cheat Meal 🍔</span>
+        <span id="statNextCheatBadge" class="text-[11px] font-mono-num font-semibold text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
+          Every 14 Days
+        </span>
+      </div>
+      <div class="my-2 flex items-baseline justify-between">
+        <span id="statNextCheatMain" class="text-2xl sm:text-3xl font-black tracking-tight text-white">
+          Day 14
+        </span>
+        <span id="statNextCheatCountdown" class="text-xs font-mono-num font-bold text-emerald-400">
+          13 days left
+        </span>
+      </div>
+      <div class="flex items-center justify-between text-[11px] text-slate-400 font-medium">
+        <span id="statNextCheatDate">Sat, Oct 31, 2026</span>
+        <span id="statChallengeCountdown" class="text-slate-500">74d to NYE</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- MAIN TWO-COLUMN WORKSPACE -->
+  <main class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+    
+    <!-- LEFT COLUMN: Daily Pillar Checklist & Ring (7 cols on lg) -->
+    <section class="lg:col-span-7 rounded-2xl bg-[#0f1522] border border-slate-800/90 p-4 sm:p-6 shadow-xl">
+      
+      <!-- Daily Header with Circular Percentage Ring -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 mb-4 border-b border-slate-800/90">
+        <div class="flex items-center gap-4">
+          <!-- Animated SVG Circular Progress Ring -->
+          <div class="relative w-20 h-20 flex items-center justify-center flex-shrink-0">
+            <svg class="w-20 h-20" viewBox="0 0 80 80">
+              <circle
+                cx="40" cy="40" r="33"
+                stroke="#1e293b" stroke-width="7" fill="transparent"
+              />
+              <circle
+                id="dayRingCircle"
+                class="progress-ring-circle"
+                cx="40" cy="40" r="33"
+                stroke="url(#ringGrad)"
+                stroke-width="7"
+                stroke-linecap="round"
+                fill="transparent"
+                stroke-dasharray="207.345"
+                stroke-dashoffset="207.345"
+              />
+              <defs>
+                <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#3b82f6" />
+                  <stop offset="100%" stop-color="#10b981" />
+                </linearGradient>
+              </defs>
+            </svg>
+            <div class="absolute inset-0 flex flex-col items-center justify-center">
+              <span id="dayRingPercentText" class="text-sm font-black font-mono-num text-white leading-none">0%</span>
+              <span id="dayRingFractionText" class="text-[10px] font-mono-num text-slate-400 mt-0.5">0/8</span>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <h2 id="currentDayHeading" class="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
+                Day 1 of 75
+              </h2>
+              <div id="dayBadges" class="flex items-center gap-1.5 flex-wrap"></div>
+            </div>
+            <p id="currentDateSub" class="text-xs sm:text-sm text-slate-400 font-medium mt-0.5">
+              Sunday, October 18, 2026
+            </p>
+            <div class="flex items-center gap-2 mt-2">
+              <span id="dayWorkoutTypeBadge" class="text-[11px] font-bold px-2.5 py-0.5 rounded-md bg-blue-500/10 border border-blue-500/25 text-blue-300">
+                🏋️ Gym Day
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Day Navigation Buttons -->
+        <div class="flex items-center gap-1.5 self-start sm:self-center">
+          <button onclick="changeDay(-1)" class="px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-bold text-slate-200 transition-colors">
+            ← Prev
+          </button>
+          <button onclick="jumpToToday()" class="px-3 py-2 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-xs font-bold text-blue-300 transition-colors">
+            Today
+          </button>
+          <button onclick="changeDay(1)" class="px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-bold text-slate-200 transition-colors">
+            Next →
+          </button>
+        </div>
+      </div>
+
+      <!-- Daily Horizontal Progress Bar -->
+      <div class="mb-5 bg-slate-950/80 border border-slate-800/80 rounded-xl p-3">
+        <div class="flex justify-between items-center text-xs mb-1.5">
+          <span class="font-bold text-slate-300">Daily Pillar Progress (12.5% per pillar)</span>
+          <span id="dailyBarStatusText" class="font-mono-num font-bold text-blue-400">0% Complete (0 / 8)</span>
+        </div>
+        <div class="w-full h-3 bg-slate-900 rounded-full overflow-hidden p-0.5 border border-slate-800">
+          <div id="dailyHeaderBarFill" class="h-full rounded-full bg-gradient-to-r from-blue-500 via-cyan-400 to-emerald-400 transition-all duration-300" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <!-- Core Tasks List -->
+      <div id="taskListContainer" class="space-y-2.5"></div>
+
+    </section>
+
+    <!-- RIGHT COLUMN: 75-Day Interactive Master Grid & Milestones (5 cols on lg) -->
+    <section class="lg:col-span-5 rounded-2xl bg-[#0f1522] border border-slate-800/90 p-4 sm:p-6 shadow-xl">
+      
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+        <div>
+          <h3 class="text-base sm:text-lg font-extrabold text-white">75-Day Master Grid</h3>
+          <p class="text-xs text-slate-400">Tap any day to inspect or update pillars</p>
+        </div>
+        <div class="flex items-center gap-3 text-[11px] font-semibold text-slate-400">
+          <span class="flex items-center gap-1.5"><i class="w-2.5 h-2.5 rounded-sm bg-emerald-500 inline-block"></i> 100%</span>
+          <span class="flex items-center gap-1.5"><i class="w-2.5 h-2.5 rounded-sm bg-blue-500/60 inline-block"></i> Partial</span>
+          <span class="flex items-center gap-1.5"><i class="w-2.5 h-2.5 rounded-sm bg-slate-800 inline-block"></i> 0%</span>
+        </div>
+      </div>
+
+      <!-- 75-Day Calendar Grid -->
+      <div id="daysGrid" class="grid grid-cols-5 sm:grid-cols-7 gap-2 my-3"></div>
+
+      <!-- Quick-Jump Milestone & Cheat Meal Chips -->
+      <div class="mt-5 pt-4 border-t border-slate-800/90">
+        <div class="flex items-center justify-between mb-2.5">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">Milestones & Cheat Meals</h4>
+          <span class="text-[11px] text-slate-500">Click to jump</span>
+        </div>
+        <div class="flex flex-wrap gap-1.5">
+          <button onclick="selectDay(1)" class="text-[11px] font-semibold px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 transition-colors">
+            🚀 Day 1: Start (Oct 18)
+          </button>
+          <button onclick="selectDay(7)" class="text-[11px] font-semibold px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 transition-colors">
+            🎯 Day 7: Lock Skill (Oct 24)
+          </button>
+          <button onclick="selectDay(14)" class="text-[11px] font-semibold px-2.5 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 transition-colors">
+            🍔 Day 14: Cheat #1 (Oct 31)
+          </button>
+          <button onclick="selectDay(28)" class="text-[11px] font-semibold px-2.5 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 transition-colors">
+            🍔 Day 28: Cheat #2 (Nov 14)
+          </button>
+          <button onclick="selectDay(38)" class="text-[11px] font-semibold px-2.5 py-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-blue-300 transition-colors">
+            ⚡ Day 38: 50% Halfway (Nov 24)
+          </button>
+          <button onclick="selectDay(42)" class="text-[11px] font-semibold px-2.5 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 transition-colors">
+            🍔 Day 42: Cheat #3 (Nov 28)
+          </button>
+          <button onclick="selectDay(56)" class="text-[11px] font-semibold px-2.5 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 transition-colors">
+            🍔 Day 56: Cheat #4 (Dec 12)
+          </button>
+          <button onclick="selectDay(70)" class="text-[11px] font-semibold px-2.5 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 transition-colors">
+            🍔 Day 70: Cheat #5 (Dec 26)
+          </button>
+          <button onclick="selectDay(75)" class="text-[11px] font-semibold px-2.5 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 transition-colors">
+            🏆 Day 75: NYE Finish (Dec 31)
+          </button>
+        </div>
+      </div>
+
+      <!-- Backup & Reset Day Controls -->
+      <div class="mt-5 pt-4 border-t border-slate-800/90 flex flex-wrap items-center justify-between gap-2">
+        <div class="flex flex-wrap items-center gap-2">
+          <button onclick="exportData()" class="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-semibold text-slate-300 transition-colors">
+            ⬇️ Export JSON
+          </button>
+          <button onclick="document.getElementById('importFile').click()" class="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-semibold text-slate-300 transition-colors">
+            ⬆️ Import JSON
+          </button>
+          <input type="file" id="importFile" accept=".json" class="hidden" onchange="importData(event)" />
+        </div>
+
+        <!-- Non-blocking two-step Reset Day button -->
+        <div class="flex items-center gap-1.5">
+          <button
+            id="resetDayBtn"
+            onclick="requestResetDay()"
+            class="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-red-950/60 border border-slate-800 hover:border-red-500/40 text-xs font-semibold text-red-400 transition-colors"
+          >
+            Reset Day
+          </button>
+          <button
+            id="confirmResetBtn"
+            onclick="executeResetDay()"
+            class="hidden px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 text-xs font-bold text-white transition-colors"
+          >
+            Confirm Reset?
+          </button>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <script>
+    // --- CONSTANTS & CONFIGURATION ---
+    const START_DATE = new Date(2026, 9, 18); // Sunday, Oct 18, 2026
+    const TOTAL_DAYS = 75;
+    const DAILY_PILLARS_REQUIRED = 8; // 8 daily pillars per day
+    const TOTAL_CHALLENGE_PILLARS = TOTAL_DAYS * DAILY_PILLARS_REQUIRED; // 600 total pillars
+    const CHEAT_DAYS = [14, 28, 42, 56, 70];
+    const STORAGE_KEY = "abdallah_75_hard_2026_v3";
+    const SYNC_CONFIG_KEY = "abdallah_75_hard_cloud_cfg";
+    const GIST_FILENAME = "75hard_sync.json";
+
+    // Application State
+    let state = {
+      selectedDay: 1,
+      skillName: "",
+      dismissedFailures: {}, // Record of dismissed failure alert day numbers
+      updatedAt: 0,
+      days: {}
+    };
+
+    let cloudCfg = { token: "", gistId: "" };
+    let syncTimeout = null;
+    let resetConfirmTimer = null;
+    let toastTimer = null;
+
+    // --- HELPER FUNCTIONS ---
+    function showToast(message, icon = "✨") {
+      const banner = document.getElementById("toastBanner");
+      document.getElementById("toastIcon").textContent = icon;
+      document.getElementById("toastText").textContent = message;
+      banner.classList.remove("hidden", "translate-y-2", "opacity-0");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        banner.classList.add("translate-y-2", "opacity-0");
+        setTimeout(() => banner.classList.add("hidden"), 300);
+      }, 2600);
+    }
+
+    function getDayDate(dayNum) {
+      const d = new Date(START_DATE);
+      d.setDate(d.getDate() + (dayNum - 1));
+      return d;
+    }
+
+    function isYogaDay(dateObj) {
+      // Wednesday (3) or Saturday (6)
+      const dayOfWeek = dateObj.getDay();
+      return dayOfWeek === 3 || dayOfWeek === 6;
+    }
+
+    function formatShortDate(dateObj) {
+      return dateObj.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    }
+
+    function formatLongDate(dateObj) {
+      return dateObj.toLocaleDateString("en-US", {
+        weekday: "long", month: "long", day: "numeric", year: "numeric"
+      });
+    }
+
+    function formatDayPct(pct) {
+      return Number.isInteger(pct) ? `${pct}%` : `${pct.toFixed(1)}%`;
+    }
+
+    function ensureDayRecord(dayNum) {
+      if (!state.days[dayNum]) {
+        state.days[dayNum] = {
+          checks: {},
+          waterLiters: 0,
+          sleepDone: false,
+          logicPuzzle: false,
+          wordPuzzle: false
+        };
+      }
+      return state.days[dayNum];
+    }
+
+    // Calculate daily progress out of 8 required daily pillars
+    function getDayProgress(dayNum) {
+      const rec = ensureDayRecord(dayNum);
+      const dateObj = getDayDate(dayNum);
+      const isYoga = isYogaDay(dateObj);
+
+      // On Yoga days (Wed/Sat), user must check Yoga. On other days, user must check Gym.
+      const movementChecked = isYoga ? !!rec.checks.yoga : !!rec.checks.gym;
+      const otherIds = ["steps", "diet", "clean", "study", "skill", "puzzles", "recovery"];
+      let count = movementChecked ? 1 : 0;
+      otherIds.forEach(id => {
+        if (rec.checks[id]) count++;
+      });
+      const percentage = (count / DAILY_PILLARS_REQUIRED) * 100;
+      return {
+        completedCount: count,
+        totalRequired: DAILY_PILLARS_REQUIRED,
+        percentage,
+        isComplete: count === DAILY_PILLARS_REQUIRED
+      };
+    }
+
+    // Guardrail Check: Returns { failed: boolean, reason: string }
+    // Rule A: Fails if "No Porn/Fap" (clean) is unchecked on past/current days.
+    // Rule B: Fails if TWO CONSECUTIVE days are incomplete (< 100%) in the past.
+    function checkFailureGuardrails() {
+      const today = new Date();
+      const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      const currentDayDiff = Math.floor((todayMidnight - START_DATE) / (1000 * 60 * 60 * 24)) + 1;
+      const effectiveMaxDay = Math.min(TOTAL_DAYS, Math.max(1, currentDayDiff));
+
+      // 1. Check Porn/Fap (Task ID: "clean") across days up to today
+      for (let d = 1; d <= effectiveMaxDay; d++) {
+        const rec = ensureDayRecord(d);
+        if (!rec.checks.clean) {
+          return {
+            failed: true,
+            day: d,
+            reason: `CRITICAL FAILURE ON DAY ${d}: You failed the "No Porn/Fap" rule! Strict 75 Hard rules dictate any violation on 'No Porn/Fap' means immediate challenge failure.`
+          };
+        }
+      }
+
+      // 2. Check two consecutive days incomplete (< 100%) in the past
+      let consecutiveIncomplete = 0;
+      for (let d = 1; d < effectiveMaxDay; d++) {
+        const prog = getDayProgress(d);
+        if (!prog.isComplete) {
+          consecutiveIncomplete++;
+          if (consecutiveIncomplete >= 2) {
+            return {
+              failed: true,
+              day: d,
+              reason: `CRITICAL FAILURE ON DAYS ${d - 1} & ${d}: You missed or failed two consecutive days in a row! Missing two consecutive days violates the core 75 Hard rule.`
+            };
+          }
+        } else {
+          consecutiveIncomplete = 0;
+        }
+      }
+
+      return { failed: false, reason: "" };
+    }
+
+    // --- STORAGE & INITIALIZATION ---
+    function loadState() {
+      try {
+        const savedV3 = localStorage.getItem(STORAGE_KEY);
+        const savedV2 = localStorage.getItem("abdallah_75_hard_2026_v2");
+        if (savedV3) {
+          state = { ...state, ...JSON.parse(savedV3) };
+        } else if (savedV2) {
+          state = { ...state, ...JSON.parse(savedV2) };
+        }
+
+        const savedCfg = localStorage.getItem(SYNC_CONFIG_KEY);
+        if (savedCfg) {
+          cloudCfg = { ...cloudCfg, ...JSON.parse(savedCfg) };
+        }
+      } catch (e) {
+        console.error("Error loading state:", e);
+      }
+
+      const now = new Date();
+      const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const diffDays = Math.floor((todayMidnight - START_DATE) / (1000 * 60 * 60 * 24)) + 1;
+      if (diffDays >= 1 && diffDays <= TOTAL_DAYS) {
+        state.selectedDay = diffDays;
+      }
+    }
+
+    function saveState(triggerCloud = true) {
+      if (triggerCloud) {
+        state.updatedAt = Date.now();
+      }
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {
+        console.error("Error saving state:", e);
+      }
+
+      if (triggerCloud && cloudCfg.token) {
+        setSyncUI("⏳", "Syncing...", false, null);
+        clearTimeout(syncTimeout);
+        syncTimeout = setTimeout(() => pushToCloud(), 700);
+      }
+    }
+
+    // --- GITHUB GIST CLOUD SYNC ---
+    function setSyncUI(icon, text, isSynced, feedbackMsg = null) {
+      document.getElementById("syncStatusIcon").textContent = icon;
+      document.getElementById("syncStatusText").textContent = text;
+      const btn = document.getElementById("syncStatusBtn");
+      if (isSynced) {
+        btn.classList.add("border-emerald-500/50", "text-emerald-300");
+      } else {
+        btn.classList.remove("border-emerald-500/50", "text-emerald-300");
+      }
+      if (feedbackMsg !== null) {
+        document.getElementById("syncFeedback").textContent = feedbackMsg;
+      }
+    }
+
+    function toggleSyncDrawer() {
+      const dr = document.getElementById("syncDrawer");
+      dr.classList.toggle("hidden");
+      if (!dr.classList.contains("hidden")) {
+        document.getElementById("ghTokenInput").value = cloudCfg.token || "";
+      }
+    }
+
+    async function connectCloudSync() {
+      const token = document.getElementById("ghTokenInput").value.trim();
+      if (!token) {
+        setSyncUI("⚠️", "No Token", false, "Please paste a valid GitHub Personal Access Token (ghp_...).");
+        return;
+      }
+      cloudCfg.token = token;
+      localStorage.setItem(SYNC_CONFIG_KEY, JSON.stringify(cloudCfg));
+      setSyncUI("⏳", "Connecting...", false, "Searching GitHub Gists for 75hard_sync.json...");
+
+      try {
+        const res = await fetch(`https://api.github.com/gists?per_page=100&t=${Date.now()}`, {
+          cache: "no-store",
+          headers: {
+            "Accept": "application/vnd.github+json",
+            "Authorization": `Bearer ${cloudCfg.token}`
+          }
+        });
+        if (!res.ok) throw new Error("Invalid token or missing 'gist' scope permission.");
+        const gists = await res.json();
+        const existing = gists.find(g => g.files && g.files[GIST_FILENAME]);
+
+        if (existing) {
+          cloudCfg.gistId = existing.id;
+          localStorage.setItem(SYNC_CONFIG_KEY, JSON.stringify(cloudCfg));
+          await pullFromCloud(true);
+          showToast("Connected & synced with GitHub Cloud!", "☁️");
+        } else {
+          const createRes = await fetch("https://api.github.com/gists", {
+            method: "POST",
+            headers: {
+              "Accept": "application/vnd.github+json",
+              "Authorization": `Bearer ${cloudCfg.token}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              description: "75 Hard Tracker Cloud Sync (Strict Edition)",
+              public: false,
+              files: {
+                [GIST_FILENAME]: { content: JSON.stringify(state, null, 2) }
+              }
+            })
+          });
+          if (!createRes.ok) throw new Error("Could not create private Gist. Verify 'gist' scope is checked.");
+          const created = await createRes.json();
+          cloudCfg.gistId = created.id;
+          localStorage.setItem(SYNC_CONFIG_KEY, JSON.stringify(cloudCfg));
+          setSyncUI("☁️", "Synced ✓", true, "Cloud sync active!");
+          showToast("Private cloud sync created!", "☁️");
+        }
+      } catch (err) {
+        setSyncUI("⚠️", "Sync Error", false, err.message);
+      }
+    }
+
+    async function pullFromCloud(forceApply = false) {
+      if (!cloudCfg.token || !cloudCfg.gistId) return;
+      try {
+        setSyncUI("⏳", "Syncing...", false, null);
+        const res = await fetch(`https://api.github.com/gists/${cloudCfg.gistId}?t=${Date.now()}`, {
+          cache: "no-store",
+          headers: {
+            "Accept": "application/vnd.github+json",
+            "Authorization": `Bearer ${cloudCfg.token}`
+          }
+        });
+        if (!res.ok) throw new Error("Failed to fetch cloud data.");
+        const gist = await res.json();
+        const file = gist.files && gist.files[GIST_FILENAME];
+        if (file && file.content) {
+          const remoteState = JSON.parse(file.content);
+          const remoteTime = remoteState.updatedAt || 0;
+          const localTime = state.updatedAt || 0;
+
+          if (forceApply || remoteTime > localTime) {
+            const currentDayKeep = state.selectedDay;
+            state = { ...state, ...remoteState, selectedDay: currentDayKeep };
+            document.getElementById("skillInput").value = state.skillName || "";
+            saveState(false);
+            renderAll();
+          } else if (localTime > remoteTime) {
+            await pushToCloud();
+            return;
+          }
+        }
+        setSyncUI("☁️", "Synced ✓", true, "Up to date with GitHub Cloud.");
+      } catch (err) {
+        setSyncUI("⚠️", "Offline", false, err.message);
+      }
+    }
+
+    async function pushToCloud() {
+      if (!cloudCfg.token || !cloudCfg.gistId) return;
+      try {
+        const res = await fetch(`https://api.github.com/gists/${cloudCfg.gistId}`, {
+          method: "PATCH",
+          headers: {
+            "Accept": "application/vnd.github+json",
+            "Authorization": `Bearer ${cloudCfg.token}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            files: {
+              [GIST_FILENAME]: { content: JSON.stringify(state, null, 2) }
+            }
+          })
+        });
+        if (!res.ok) throw new Error("Push failed.");
+        setSyncUI("☁️", "Synced ✓", true, "All changes saved to cloud.");
+      } catch (err) {
+        setSyncUI("⚠️", "Offline", false, "Saved locally; will push when online.");
+      }
+    }
+
+    function disconnectCloud() {
+      cloudCfg = { token: "", gistId: "" };
+      localStorage.removeItem(SYNC_CONFIG_KEY);
+      document.getElementById("ghTokenInput").value = "";
+      setSyncUI("☁️", "Cloud Sync", false, "Disconnected from GitHub Cloud Sync.");
+      showToast("Cloud sync disconnected", "🔌");
+    }
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible" && cloudCfg.token && cloudCfg.gistId) {
+        pullFromCloud(false);
+      }
+    });
+
+    // --- TASK INTERACTIONS ---
+    function toggleTask(taskId) {
+      const rec = ensureDayRecord(state.selectedDay);
+      rec.checks[taskId] = !rec.checks[taskId];
+
+      if (taskId === "puzzles") {
+        rec.logicPuzzle = !!rec.checks.puzzles;
+        rec.wordPuzzle = !!rec.checks.puzzles;
+      }
+
+      if (taskId === "recovery") {
+        if (rec.checks.recovery) {
+          rec.waterLiters = 3;
+          rec.sleepDone = true;
+        } else {
+          rec.sleepDone = false;
+        }
+      }
+
+      saveState();
+      renderAll();
+    }
+
+    function toggleSubPuzzle(type, event) {
+      event.stopPropagation();
+      const rec = ensureDayRecord(state.selectedDay);
+      if (type === "logic") rec.logicPuzzle = !rec.logicPuzzle;
+      if (type === "word") rec.wordPuzzle = !rec.wordPuzzle;
+      rec.checks.puzzles = !!(rec.logicPuzzle && rec.wordPuzzle);
+      saveState();
+      renderAll();
+    }
+
+    function setWater(liters, event) {
+      event.stopPropagation();
+      const rec = ensureDayRecord(state.selectedDay);
+      rec.waterLiters = rec.waterLiters === liters ? liters - 1 : liters;
+      rec.checks.recovery = !!(rec.waterLiters >= 3 && rec.sleepDone);
+      saveState();
+      renderAll();
+    }
+
+    function toggleSleepChip(event) {
+      event.stopPropagation();
+      const rec = ensureDayRecord(state.selectedDay);
+      rec.sleepDone = !rec.sleepDone;
+      rec.checks.recovery = !!(rec.waterLiters >= 3 && rec.sleepDone);
+      saveState();
+      renderAll();
+    }
+
+    function selectDay(dayNum) {
+      state.selectedDay = Math.max(1, Math.min(TOTAL_DAYS, dayNum));
+      cancelResetConfirmation();
+      saveState(false);
+      renderAll();
+    }
+
+    function changeDay(delta) {
+      selectDay(state.selectedDay + delta);
+    }
+
+    function jumpToToday() {
+      const now = new Date();
+      const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const diffDays = Math.floor((todayMidnight - START_DATE) / (1000 * 60 * 60 * 24)) + 1;
+      selectDay(diffDays >= 1 && diffDays <= TOTAL_DAYS ? diffDays : 1);
+      showToast(`Jumped to Day ${state.selectedDay}`, "📅");
+    }
+
+    function requestResetDay() {
+      document.getElementById("resetDayBtn").classList.add("hidden");
+      document.getElementById("confirmResetBtn").classList.remove("hidden");
+      clearTimeout(resetConfirmTimer);
+      resetConfirmTimer = setTimeout(() => { cancelResetConfirmation(); }, 4000);
+    }
+
+    function cancelResetConfirmation() {
+      clearTimeout(resetConfirmTimer);
+      const rBtn = document.getElementById("resetDayBtn");
+      const cBtn = document.getElementById("confirmResetBtn");
+      if (rBtn && cBtn) {
+        rBtn.classList.remove("hidden");
+        cBtn.classList.add("hidden");
+      }
+    }
+
+    function executeResetDay() {
+      cancelResetConfirmation();
+      state.days[state.selectedDay] = {
+        checks: {}, waterLiters: 0, sleepDone: false, logicPuzzle: false, wordPuzzle: false
+      };
+      saveState();
+      renderAll();
+      showToast(`Day ${state.selectedDay} reset to 0%`, "🗑️");
+    }
+
+    function dismissFailureBanner() {
+      state.dismissedFailures[state.selectedDay] = true;
+      document.getElementById("failureAlertBanner").classList.add("hidden");
+      saveState(false);
+    }
+
+    // --- RENDERING DASHBOARD & PERCENTAGE TRACKERS ---
+    function renderTopStats() {
+      let totalCompletedPillars = 0;
+      let totalFullDays = 0;
+
+      for (let d = 1; d <= TOTAL_DAYS; d++) {
+        const prog = getDayProgress(d);
+        totalCompletedPillars += prog.completedCount;
+        if (prog.isComplete) totalFullDays++;
+      }
+
+      // 1. Overall Challenge Percentage
+      const overallPct = (totalCompletedPillars / TOTAL_CHALLENGE_PILLARS) * 100;
+      const fullDaysPct = Math.round((totalFullDays / TOTAL_DAYS) * 100);
+
+      document.getElementById("statOverallPercent").textContent = `${overallPct.toFixed(1)}%`;
+      document.getElementById("statTotalPillarsBadge").textContent = `${totalCompletedPillars} / ${TOTAL_CHALLENGE_PILLARS} Pillars`;
+      document.getElementById("statFullDaysText").textContent = `${totalFullDays} / 75 Days · ${fullDaysPct}%`;
+      document.getElementById("overallProgressBar").style.width = `${Math.min(100, overallPct)}%`;
+
+      // 2. Selected Day Completion % & Streak
+      const dayProg = getDayProgress(state.selectedDay);
+      const formattedDayPct = formatDayPct(dayProg.percentage);
+      document.getElementById("statDayCardLabel").textContent = `Day ${state.selectedDay} Completion`;
+      document.getElementById("statDayPillarsCount").textContent = `${dayProg.completedCount} / ${DAILY_PILLARS_REQUIRED} Pillars`;
+      document.getElementById("statDayPercentTop").textContent = formattedDayPct;
+      document.getElementById("dayProgressBarTop").style.width = `${dayProg.percentage}%`;
+
+      let streak = 0;
+      for (let d = 1; d <= TOTAL_DAYS; d++) {
+        if (getDayProgress(d).isComplete) streak++;
+        else if (d < state.selectedDay) streak = 0;
+        else break;
+      }
+      document.getElementById("statStreakBadge").textContent = `🔥 ${streak} Day Streak`;
+
+      // 3. Wednesday / Saturday Yoga Schedule Card
+      const dateObj = getDayDate(state.selectedDay);
+      const isYoga = isYogaDay(dateObj);
+      document.getElementById("statYogaDayBadge").textContent = isYoga ? "Yoga Day (Wed/Sat)" : "Gym Day";
+      document.getElementById("statYogaStatusText").textContent = isYoga ? "🧘 Yoga & Mobility" : "🏋️ Gym Training";
+      document.getElementById("statYogaSub").textContent = isYoga ? "Scheduled rest day session" : "Follow your lifting split";
+      document.getElementById("statYogaCheckIcon").textContent = isYoga ? "🧘" : "🏋️";
+
+      // 4. Next Cheat Meal Countdown
+      const nextCheat = CHEAT_DAYS.find(d => d >= state.selectedDay);
+      const daysToFinish = TOTAL_DAYS - state.selectedDay;
+      document.getElementById("statChallengeCountdown").textContent =
+        daysToFinish === 0 ? "🏆 Final Day!" : `${daysToFinish}d to NYE Finish`;
+
+      if (nextCheat) {
+        const diff = nextCheat - state.selectedDay;
+        document.getElementById("statNextCheatMain").textContent = diff === 0 ? "TODAY! 🍔" : `Day ${nextCheat}`;
+        document.getElementById("statNextCheatCountdown").textContent =
+          diff === 0 ? "Unlocked!" : `${diff} day${diff === 1 ? "" : "s"} away`;
+        document.getElementById("statNextCheatDate").textContent = formatShortDate(getDayDate(nextCheat)) + ", 2026";
+      } else {
+        document.getElementById("statNextCheatMain").textContent = "Day 75 🏆";
+        document.getElementById("statNextCheatCountdown").textContent =
+          daysToFinish === 0 ? "Complete!" : `${daysToFinish}d left`;
+        document.getElementById("statNextCheatDate").textContent = "Dec 31, 2026";
+      }
+
+      // 5. Guardrail Failure Check
+      const failure = checkFailureGuardrails();
+      const failBanner = document.getElementById("failureAlertBanner");
+      if (failure.failed && !state.dismissedFailures[state.selectedDay]) {
+        document.getElementById("failureAlertReason").textContent = failure.reason;
+        failBanner.classList.remove("hidden");
+      } else {
+        failBanner.classList.add("hidden");
+      }
+    }
+
+    // --- RENDERING DAILY CHECKLIST & RING ---
+    function renderChecklist() {
+      const d = state.selectedDay;
+      const rec = ensureDayRecord(d);
+      const dateObj = getDayDate(d);
+      const isYoga = isYogaDay(dateObj);
+      const prog = getDayProgress(d);
+      const formattedPct = formatDayPct(prog.percentage);
+
+      // SVG Ring
+      const circumference = 207.345;
+      const offset = circumference - (prog.percentage / 100) * circumference;
+      const ringEl = document.getElementById("dayRingCircle");
+      ringEl.style.strokeDashoffset = offset;
+      document.getElementById("dayRingPercentText").textContent = formattedPct;
+      document.getElementById("dayRingFractionText").textContent = `${prog.completedCount}/${DAILY_PILLARS_REQUIRED}`;
+
+      document.getElementById("currentDayHeading").textContent = `Day ${d} of 75`;
+      document.getElementById("currentDateSub").textContent = `${formatLongDate(dateObj)}`;
+      document.getElementById("dailyBarStatusText").textContent = `${formattedPct} Complete (${prog.completedCount} / ${DAILY_PILLARS_REQUIRED} pillars)`;
+      document.getElementById("dailyHeaderBarFill").style.width = `${prog.percentage}%`;
+
+      const workoutBadge = document.getElementById("dayWorkoutTypeBadge");
+      workoutBadge.textContent = isYoga ? "🧘 Yoga Day (Wednesday/Saturday)" : "🏋️ Gym Training Day";
+      workoutBadge.className = `text-[11px] font-bold px-2.5 py-0.5 rounded-md border ${
+        isYoga
+          ? "bg-purple-500/10 border-purple-500/25 text-purple-300"
+          : "bg-blue-500/10 border-blue-500/25 text-blue-300"
+      }`;
+
+      // Badges
+      let badgesHtml = "";
+      if (CHEAT_DAYS.includes(d)) {
+        badgesHtml += `<span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30">🍔 Cheat Meal Day</span>`;
+      }
+      if (d === 38) {
+        badgesHtml += `<span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-blue-500/15 text-blue-300 border border-blue-500/30">⚡ 50% Halfway</span>`;
+      }
+      if (d === 75) {
+        badgesHtml += `<span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-purple-500/15 text-purple-300 border border-purple-500/30">🏆 NYE Finish</span>`;
+      }
+      if (prog.isComplete) {
+        badgesHtml += `<span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">✓ 100% Complete</span>`;
+      }
+      document.getElementById("dayBadges").innerHTML = badgesHtml;
+
+      const container = document.getElementById("taskListContainer");
+      container.innerHTML = "";
+
+      // Build task items
+      // Task 1: Gym (Active on non-Yoga days)
+      // Task 2: Yoga (Active strictly on Wednesday & Saturday)
+      const tasksToRender = [
+        {
+          id: "gym",
+          title: "1. Gym session (following your split)",
+          desc: "Complete your scheduled lifting workout.",
+          badge: "Gym Day",
+          hidden: isYoga
+        },
+        {
+          id: "yoga",
+          title: "2. Yoga session (Wednesday & Saturday rest day)",
+          desc: "Active recovery & mobility flow.",
+          badge: "Yoga Day",
+          hidden: !isYoga
+        },
+        {
+          id: "steps",
+          title: "3. 10k steps or a ride every day",
+          desc: "Hit 10,000 steps or complete an outdoor/indoor bike ride.",
+          badge: "Daily"
+        },
+        {
+          id: "diet",
+          title: "4. Eat on plan: hit calories & 180 g protein",
+          desc: "Strict adherence to macros. Cheat meal unlocks every 2 weeks.",
+          badge: "180g Protein"
+        },
+        {
+          id: "clean",
+          title: "5. No porn / no fap (CRITICAL RULE)",
+          desc: "Zero exceptions. Failing this rule instantly triggers challenge failure.",
+          badge: "Strict Rule",
+          isCritical: true
+        },
+        {
+          id: "study",
+          title: "6. Study at least one session from midterm plan",
+          desc: "Complete at least one focused study block from your academic plan.",
+          badge: "Daily Study"
+        },
+        {
+          id: "skill",
+          title: "7. Learn something new: 30 min on learning project",
+          desc: "30 minutes of deliberate practice on your Week 1 skill.",
+          badge: "30 Min"
+        },
+        {
+          id: "puzzles",
+          title: "8. Puzzles: 2 a day, one logic and one word",
+          desc: "Play Good Sudoku, Flow Free, or Knotwords. Check both chips below.",
+          hasPuzzles: true,
+          badge: "2 Puzzles"
+        },
+        {
+          id: "recovery",
+          title: "9. Sleep 7+ hours and drink 3 L of water",
+          desc: "Prioritize 7+ hours of sleep and track your 3 liters of water intake.",
+          hasHydration: true,
+          badge: "7h + 3L"
+        }
+      ];
+
+      tasksToRender.forEach(task => {
+        if (task.hidden) return;
+
+        const isChecked = !!rec.checks[task.id];
+        const isCriticalFail = task.isCritical && !isChecked;
+
+        const card = document.createElement("div");
+        card.className = `task-card cursor-pointer select-none rounded-xl border border-slate-800/90 bg-slate-950/60 p-3.5 flex items-start gap-3.5 ${
+          isChecked ? "checked" : ""
+        } ${isCriticalFail && d <= new Date().getDate() ? "" : ""}`;
+        card.onclick = () => toggleTask(task.id);
+
+        let displayTitle = task.title;
+        if (task.id === "skill" && state.skillName.trim()) {
+          displayTitle = `7. Learn something new: ${state.skillName.trim()} (30 min)`;
+        }
+
+        let subControlsHtml = "";
+        if (task.hasPuzzles) {
+          subControlsHtml = `
+            <div class="flex flex-wrap gap-2 mt-2.5">
+              <button
+                type="button"
+                onclick="toggleSubPuzzle('logic', event)"
+                class="px-2.5 py-1 rounded-lg text-xs font-bold border transition-all ${
+                  rec.logicPuzzle
+                    ? "bg-blue-600 text-white border-blue-500 shadow-sm"
+                    : "bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-700"
+                }"
+              >
+                ${rec.logicPuzzle ? "✓" : "+"} Logic Puzzle (Sudoku / Flow)
+              </button>
+              <button
+                type="button"
+                onclick="toggleSubPuzzle('word', event)"
+                class="px-2.5 py-1 rounded-lg text-xs font-bold border transition-all ${
+                  rec.wordPuzzle
+                    ? "bg-blue-600 text-white border-blue-500 shadow-sm"
+                    : "bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-700"
+                }"
+              >
+                ${rec.wordPuzzle ? "✓" : "+"} Word Puzzle (Knotwords)
+              </button>
+            </div>
+          `;
+        }
+
+        if (task.hasHydration) {
+          const sleepActive = rec.sleepDone || isChecked;
+          subControlsHtml = `
+            <div class="flex flex-wrap gap-1.5 mt-2.5">
+              <button
+                type="button"
+                onclick="toggleSleepChip(event)"
+                class="px-2.5 py-1 rounded-lg text-xs font-bold border transition-all ${
+                  sleepActive
+                    ? "bg-indigo-600 text-white border-indigo-500"
+                    : "bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-700"
+                }"
+              >
+                😴 ${sleepActive ? "7h+ Sleep ✓" : "7h+ Sleep"}
+              </button>
+              <button
+                type="button"
+                onclick="setWater(1, event)"
+                class="px-2.5 py-1 rounded-lg text-xs font-bold border transition-all ${
+                  rec.waterLiters >= 1
+                    ? "bg-cyan-600 text-white border-cyan-500"
+                    : "bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-700"
+                }"
+              >
+                💧 1L
+              </button>
+              <button
+                type="button"
+                onclick="setWater(2, event)"
+                class="px-2.5 py-1 rounded-lg text-xs font-bold border transition-all ${
+                  rec.waterLiters >= 2
+                    ? "bg-cyan-600 text-white border-cyan-500"
+                    : "bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-700"
+                }"
+              >
+                💧 2L
+              </button>
+              <button
+                type="button"
+                onclick="setWater(3, event)"
+                class="px-2.5 py-1 rounded-lg text-xs font-bold border transition-all ${
+                  rec.waterLiters >= 3
+                    ? "bg-emerald-600 text-white border-emerald-500"
+                    : "bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-700"
+                }"
+              >
+                💧 3L Done
+              </button>
+            </div>
+          `;
+        }
+
+        card.innerHTML = `
+          <div class="w-6 h-6 rounded-lg border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-colors ${
+            isChecked
+              ? "bg-emerald-500 border-emerald-500 text-slate-950 font-black"
+              : "border-slate-600 text-transparent"
+          }">
+            ✓
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-sm sm:text-[15px] font-bold ${isChecked ? "text-emerald-200" : "text-slate-100"}">
+                ${displayTitle}
+              </span>
+              <span class="text-[10px] font-mono-num font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-900 border border-slate-800 ${
+                task.isCritical ? "text-red-400 border-red-500/30" : "text-slate-400"
+              }">
+                ${isChecked ? "+12.5% ✓" : task.badge}
+              </span>
+            </div>
+            <p class="text-xs text-slate-400 mt-0.5 leading-relaxed">${task.desc}</p>
+            ${subControlsHtml}
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+    }
+
+    // --- RENDERING 75-DAY MASTER GRID ---
+    function renderGrid() {
+      const grid = document.getElementById("daysGrid");
+      grid.innerHTML = "";
+
+      for (let d = 1; d <= TOTAL_DAYS; d++) {
+        const prog = getDayProgress(d);
+        const dateObj = getDayDate(d);
+        const isYoga = isYogaDay(dateObj);
+        const cell = document.createElement("div");
+
+        let bgClasses = "bg-slate-950/80 border-slate-800/90 text-slate-300";
+        if (prog.isComplete) {
+          bgClasses = "bg-emerald-500/20 border-emerald-500/60 text-emerald-200";
+        } else if (prog.completedCount > 0) {
+          bgClasses = "bg-blue-500/15 border-blue-500/40 text-blue-100";
+        }
+
+        cell.className = `day-cell relative rounded-xl border p-1.5 sm:p-2 flex flex-col items-center justify-between cursor-pointer select-none min-h-[64px] ${bgClasses} ${
+          d === state.selectedDay ? "selected-cell" : ""
+        }`;
+        cell.onclick = () => selectDay(d);
+
+        let marker = "";
+        if (CHEAT_DAYS.includes(d)) marker = "🍔";
+        else if (d === 38) marker = "⚡";
+        else if (d === 75) marker = "🏆";
+        else if (isYoga) marker = "🧘";
+
+        const pctLabel = prog.completedCount > 0 ? `${Math.round(prog.percentage)}%` : "";
+
+        cell.innerHTML = `
+          <div class="w-full flex items-center justify-between text-[10px] leading-none">
+            <span class="font-mono-num font-semibold text-slate-400">${pctLabel}</span>
+            <span>${marker}</span>
+          </div>
+          <div class="my-0.5 text-center">
+            <div class="text-sm font-black font-mono-num leading-tight">${d}</div>
+            <div class="text-[10px] opacity-75 font-medium leading-tight">${formatShortDate(dateObj)}</div>
+          </div>
+          <div class="w-full h-1 bg-slate-900/90 rounded-full overflow-hidden mt-1">
+            <div class="h-full transition-all duration-300 ${
+              prog.isComplete ? "bg-emerald-400" : "bg-blue-400"
+            }" style="width: ${prog.percentage}%"></div>
+          </div>
+        `;
+        grid.appendChild(cell);
+      }
+    }
+
+    // --- BACKUP EXPORT & IMPORT ---
+    function exportData() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
+      const a = document.createElement("a");
+      a.setAttribute("href", dataStr);
+      a.setAttribute("download", `75-hard-strict-day-${state.selectedDay}.json`);
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      showToast("Backup JSON downloaded!", "⬇️");
+    }
+
+    function importData(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (imported && imported.days) {
+            state = { ...state, ...imported };
+            document.getElementById("skillInput").value = state.skillName || "";
+            saveState(true);
+            renderAll();
+            showToast("Backup restored & synced!", "✅");
+          } else {
+            showToast("Invalid backup JSON format", "⚠️");
+          }
+        } catch (err) {
+          showToast("Could not read JSON file", "⚠️");
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function renderAll() {
+      renderTopStats();
+      renderChecklist();
+      renderGrid();
+    }
+
+    // --- BOOTSTRAP ---
+    window.onload = function () {
+      loadState();
+      const skillInput = document.getElementById("skillInput");
+      skillInput.value = state.skillName || "";
+      skillInput.addEventListener("input", e => {
+        state.skillName = e.target.value;
+        saveState(true);
+        renderChecklist();
+      });
+
+      renderAll();
+
+      if (cloudCfg.token && cloudCfg.gistId) {
+        pullFromCloud(false);
+      } else if (cloudCfg.token) {
+        connectCloudSync();
+      }
+    };
+  </script>
+</body>
+</html>
